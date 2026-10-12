@@ -1,0 +1,144 @@
+{
+  "resultado": "correcto",
+  "fecha_utc": "2026-10-12T08:14:47.161514+00:00",
+  "servicios_en_red": [
+    "emqx",
+    "grafana",
+    "influxdb",
+    "nodo_a",
+    "nodo_b",
+    "receptor"
+  ],
+  "mensajes_coincidentes": [
+    {
+      "sensor": "ALM-01",
+      "zona": "zona_a",
+      "temperatura_c": 24.49,
+      "timestamp": "2026-10-12T08:14:20.864+00:00",
+      "lectura": 16,
+      "origen": "simulado"
+    },
+    {
+      "sensor": "ALM-01",
+      "zona": "zona_a",
+      "temperatura_c": 24.38,
+      "timestamp": "2026-10-12T08:14:30.863+00:00",
+      "lectura": 17,
+      "origen": "simulado"
+    },
+    {
+      "sensor": "ALM-01",
+      "zona": "zona_a",
+      "temperatura_c": 24.44,
+      "timestamp": "2026-10-12T08:14:40.861+00:00",
+      "lectura": 18,
+      "origen": "simulado"
+    },
+    {
+      "sensor": "ALM-02",
+      "zona": "zona_b",
+      "temperatura_c": 28.54,
+      "timestamp": "2026-10-12T08:14:20.668+00:00",
+      "lectura": 16,
+      "origen": "simulado"
+    },
+    {
+      "sensor": "ALM-02",
+      "zona": "zona_b",
+      "temperatura_c": 27.95,
+      "timestamp": "2026-10-12T08:14:30.667+00:00",
+      "lectura": 17,
+      "origen": "simulado"
+    },
+    {
+      "sensor": "ALM-02",
+      "zona": "zona_b",
+      "temperatura_c": 27.49,
+      "timestamp": "2026-10-12T08:14:40.666+00:00",
+      "lectura": 18,
+      "origen": "simulado"
+    }
+  ],
+  "dashboard": "Monitoreo térmico del almacén",
+  "conexion_grafana_influxdb": "correcta",
+  "consultas_flux_comprobadas": 21,
+  "perfil_logico_sin_espera_real": {
+    "ALM-01": {
+      "minimo": 24.2,
+      "maximo": 24.61
+    },
+    "ALM-02": {
+      "minimo": 26.05,
+      "maximo": 29.06
+    }
+  },
+  "recursos": [
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "0.01%",
+      "Container": "8dd4245b6d886ccfeaba8962c7ce28ad335a9f8407a3dcdc3033f8051918f5b2",
+      "ID": "8dd4245b6d88",
+      "MemPerc": "0.14%",
+      "MemUsage": "14.09MiB / 9.561GiB",
+      "Name": "ta3-iot-nodo_b-1",
+      "NetIO": "2.98kB / 6.5kB",
+      "PIDs": "3"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "0.02%",
+      "Container": "91db4f534f35dad322c1a03badb778ef034f7b9ac4442a8c7f462c54d3e554d3",
+      "ID": "91db4f534f35",
+      "MemPerc": "0.15%",
+      "MemUsage": "14.57MiB / 9.561GiB",
+      "Name": "ta3-iot-nodo_a-1",
+      "NetIO": "2.93kB / 6.77kB",
+      "PIDs": "3"
+    },
+    {
+      "BlockIO": "0B / 4.1kB",
+      "CPUPerc": "18.53%",
+      "Container": "8abf18a0b447ebd48c7d0145bba6e466a5c1d8d5017cac9cf1e5d985fe806602",
+      "ID": "8abf18a0b447",
+      "MemPerc": "0.23%",
+      "MemUsage": "22.72MiB / 9.561GiB",
+      "Name": "ta3-iot-receptor-1",
+      "NetIO": "33.8kB / 36.2kB",
+      "PIDs": "3"
+    },
+    {
+      "BlockIO": "0B / 54.9MB",
+      "CPUPerc": "1.37%",
+      "Container": "48dd799cf486702b1fcbeffd841e074d86024348021c6140013735b125564d95",
+      "ID": "48dd799cf486",
+      "MemPerc": "3.12%",
+      "MemUsage": "305.7MiB / 9.561GiB",
+      "Name": "ta3-iot-grafana-1",
+      "NetIO": "1.2MB / 5.16MB",
+      "PIDs": "156"
+    },
+    {
+      "BlockIO": "0B / 3.92MB",
+      "CPUPerc": "0.06%",
+      "Container": "5628449449a1003c2ec1d3a2ad3815c64a8c0b91bb14b43dd3c246c187eef521",
+      "ID": "5628449449a1",
+      "MemPerc": "0.75%",
+      "MemUsage": "73.74MiB / 9.561GiB",
+      "Name": "ta3-iot-influxdb-1",
+      "NetIO": "1.23MB / 16MB",
+      "PIDs": "17"
+    },
+    {
+      "BlockIO": "0B / 10.5MB",
+      "CPUPerc": "0.78%",
+      "Container": "9daac26b99248cd260be61595995c4efc14111d57a80f14eba65e4aa9666ead3",
+      "ID": "9daac26b9924",
+      "MemPerc": "3.15%",
+      "MemUsage": "308.3MiB / 9.561GiB",
+      "Name": "ta3-iot-emqx-1",
+      "NetIO": "6.62MB / 25.7MB",
+      "PIDs": "60"
+    }
+  ],
+  "limite_de_verificacion": "Verifica servicios y consultas; la apariencia se revisa en el navegador."
+}

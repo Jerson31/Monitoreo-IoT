@@ -1,0 +1,157 @@
+name: ta3-iot
+
+x-python: &python
+  image: ta3-python:1.0
+  build:
+    context: .
+    dockerfile: Dockerfile
+  init: true
+  networks:
+    - iot
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+services:
+  receptor:
+    <<: *python
+    command: ["python", "src/almacenar_mqtt.py", "--broker", "emqx", "--senal-listo", "/tmp/ta3-almacenamiento-listo"]
+    environment:
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: ${INFLUX_ORG:?Ejecuta herramientas/preparar_entorno.py}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:?Ejecuta herramientas/preparar_entorno.py}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?Ejecuta herramientas/preparar_entorno.py}
+    depends_on:
+      emqx:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from pathlib import Path; import sys; sys.exit(0 if Path('/tmp/ta3-almacenamiento-listo').exists() else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  nodo_a:
+    <<: *python
+    command: ["python", "src/sensor_simulado.py", "--mqtt", "--sensor", "ALM-01", "--broker", "emqx"]
+    depends_on:
+      receptor:
+        condition: service_healthy
+
+  nodo_b:
+    <<: *python
+    command: ["python", "src/sensor_simulado.py", "--mqtt", "--sensor", "ALM-02", "--broker", "emqx"]
+    depends_on:
+      receptor:
+        condition: service_healthy
+
+  emqx:
+    image: emqx/emqx-enterprise:6.3.1
+    hostname: broker.ta3.local
+    environment:
+      EMQX_NODE_NAME: emqx@broker.ta3.local
+      EMQX_FEATURES: dashboard,metrics
+    ports:
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:8083:8083"
+      - "127.0.0.1:18083:18083"
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    networks:
+      iot:
+        aliases:
+          - broker.ta3.local
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  influxdb:
+    image: influxdb:2.9.1-alpine
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USERNAME:?Ejecuta herramientas/preparar_entorno.py}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:?Ejecuta herramientas/preparar_entorno.py}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:?Ejecuta herramientas/preparar_entorno.py}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:?Ejecuta herramientas/preparar_entorno.py}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?Ejecuta herramientas/preparar_entorno.py}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION:-7d}
+      INFLUXD_REPORTING_DISABLED: "true"
+    ports:
+      - "127.0.0.1:8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    networks:
+      - iot
+    healthcheck:
+      test: ["CMD", "influx", "ping", "--host", "http://localhost:8086"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    environment:
+      GF_SECURITY_ADMIN_USER: ${INFLUX_USERNAME:?Ejecuta herramientas/preparar_entorno.py}
+      GF_SECURITY_ADMIN_PASSWORD: ${INFLUX_PASSWORD:?Ejecuta herramientas/preparar_entorno.py}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      INFLUX_ORG: ${INFLUX_ORG:?Ejecuta herramientas/preparar_entorno.py}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:?Ejecuta herramientas/preparar_entorno.py}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?Ejecuta herramientas/preparar_entorno.py}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - iot
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  iot:
+    name: ta3_red_iot
+    driver: bridge
+
+volumes:
+  emqx_data:
+  emqx_log:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:

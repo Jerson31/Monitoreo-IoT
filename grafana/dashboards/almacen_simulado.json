@@ -1,0 +1,599 @@
+{
+  "uid": "ta3-almacen-simulado",
+  "title": "Monitoreo térmico del almacén",
+  "description": "Temperatura de almacenamiento y recepción/despacho, historial y estados por zona.",
+  "tags": [
+    "Almacén",
+    "Temperatura"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 2,
+  "editable": true,
+  "refresh": "10s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "6h"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "grupo",
+        "label": "Equipo",
+        "type": "textbox",
+        "hide": 0,
+        "query": "Grupo TA3",
+        "current": {
+          "text": "Grupo TA3",
+          "value": "Grupo TA3"
+        }
+      },
+      {
+        "name": "sensor",
+        "label": "Zona / nodo",
+        "type": "custom",
+        "hide": 0,
+        "query": "ALM-01,ALM-02",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "ALM-01",
+            "value": "ALM-01",
+            "selected": false
+          },
+          {
+            "text": "ALM-02",
+            "value": "ALM-02",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "bucket",
+        "type": "constant",
+        "hide": 2,
+        "query": "temperaturas",
+        "current": {
+          "text": "temperaturas",
+          "value": "temperaturas"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "MONITOREO AMBIENTAL",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "description": "",
+      "options": {
+        "mode": "markdown",
+        "content": "### ${grupo} · Monitoreo de temperatura\n**Zona A:** almacenamiento · **Zona B:** recepción y despacho\n\nLímite de referencia **28 °C** · Actualización cada **10 segundos**"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Almacenamiento | Última lectura",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Última lectura de ALM-01 dentro del período seleccionado.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor == \"ALM-01\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 28.01
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Recepción y despacho | Última lectura",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Última lectura de ALM-02 dentro del período seleccionado.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor == \"ALM-02\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 28.01
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Estado por zona",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Normal hasta 28 °C; alerta por encima. Sin datos recientes desde 60 s sin una lectura nueva.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor =~ /^${sensor:regex}$/)\n  |> last()\n  |> map(fn: (r) => ({r with _value: if int(v: now()) - int(v: r._time) >= 60000000000 then 2 else if r._value > 28.0 then 1 else 0}))\n  |> keep(columns: [\"_time\", \"_value\", \"sensor\"])\n  |> map(fn: (r) => ({r with sensor: if r.sensor == \"ALM-01\" then \"Almacenamiento\" else \"Recepción y despacho\"}))\n  |> group(columns: [\"sensor\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              },
+              {
+                "color": "gray",
+                "value": 2
+              }
+            ]
+          },
+          "displayName": "${__field.labels.sensor}",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "NORMAL",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "ALERTA",
+                  "color": "red",
+                  "index": 1
+                },
+                "2": {
+                  "text": "SIN DATOS",
+                  "color": "gray",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Registros en el período",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor =~ /^${sensor:regex}$/)\n  |> group()\n  |> count()\n  |> keep(columns: [\"_value\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 28.01
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Evolución de temperatura",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 16,
+        "h": 10
+      },
+      "description": "Historial de las zonas seleccionadas. La línea horizontal marca 28 °C.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor =~ /^${sensor:regex}$/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"sensor\"])\n  |> map(fn: (r) => ({r with sensor: if r.sensor == \"ALM-01\" then \"Almacenamiento\" else \"Recepción y despacho\"}))\n  |> group(columns: [\"sensor\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 2,
+          "displayName": "${__field.labels.sensor}",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 28
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "pointSize": 4,
+            "spanNulls": false,
+            "thresholdsStyle": {
+              "mode": "line"
+            },
+            "axisLabel": "Temperatura (°C)",
+            "axisSoftMin": 22,
+            "axisSoftMax": 30
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Antigüedad del dato | Por zona",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 9,
+        "w": 8,
+        "h": 10
+      },
+      "description": "Indica la antigüedad por zona; rojo desde 60 s. No oculta una zona detenida detrás de la otra.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and r._field == \"temperatura_c\")\n  |> filter(fn: (r) => r.sensor =~ /^${sensor:regex}$/)\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: int(v: now()) - int(v: r._time)) / 1000000000.0,\n                     sensor: if r.sensor == \"ALM-01\" then \"Almacenamiento\" else \"Recepción y despacho\"}))\n  |> group(columns: [\"sensor\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          },
+          "displayName": "${__field.labels.sensor}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Registro de temperaturas",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "ta3-influx"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "ta3-influx"
+          },
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"temperatura\" and (r._field == \"temperatura_c\" or r._field == \"lectura\"))\n  |> filter(fn: (r) => r.sensor =~ /^${sensor:regex}$/)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 20)\n  |> keep(columns: [\"_time\", \"sensor\", \"zona\", \"temperatura_c\", \"lectura\"])\n  |> map(fn: (r) => ({r with zona: if r.sensor == \"ALM-01\" then \"Almacenamiento\" else \"Recepción y despacho\"}))\n  |> rename(columns: {_time: \"Fecha\", sensor: \"Nodo\", zona: \"Zona\", temperatura_c: \"Temperatura\", lectura: \"Lectura\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temperatura"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fecha"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    }
+  ],
+  "style": "dark"
+}

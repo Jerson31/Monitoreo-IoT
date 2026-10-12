@@ -1,0 +1,8 @@
+# Solo entra en la construcción lo que usa Dockerfile; .env queda fuera.
+**
+!Dockerfile
+!requirements.txt
+!src/
+!src/*.py
+!dependencias/
+!dependencias/paho_mqtt-2.1.0-py3-none-any.whl
